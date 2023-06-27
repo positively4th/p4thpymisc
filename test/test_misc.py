@@ -2,9 +2,10 @@ import unittest
 from collections import OrderedDict
 
 from src.misc import items
+from src.misc import HashCache
 
 
-class testStandardTypes(unittest.TestCase):
+class testMisc(unittest.TestCase):
 
     def testItems(self):
         input = 1
@@ -55,3 +56,38 @@ class testStandardTypes(unittest.TestCase):
         exp = [(key, input[key]) for key in sorted(input.keys())]
         act = [(key, val) for key, val in items(input, sort=True)]
         self.assertEqual(exp, act)
+
+    def testHashCache(self):
+
+        input = 'a'
+        aNum = 1
+        aList = [input, aNum]
+        aDict = {input: aNum}
+
+        inputs = [input, aNum, aList, aDict]
+
+        cache = HashCache()
+
+        for input in inputs:
+            self.assertEquals(type(input), cache.get(
+                cache.key(input), type(input)))
+
+        for input in inputs:
+            self.assertEquals(type(input), cache.set(
+                cache.key(input), input, type(input)))
+
+        for input in inputs:
+            self.assertEquals(input, cache.set(
+                cache.key(input), input, type(input)))
+
+        for input in inputs:
+            self.assertEquals(input, cache.delete(
+                cache.key(input), type(input)))
+
+        for input in inputs:
+            self.assertEquals(type(input), cache.delete(
+                cache.key(input), type(input)))
+
+        for input in inputs:
+            self.assertEquals(type(input), cache.get(
+                cache.key(input), type(input)))
