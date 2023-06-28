@@ -22,6 +22,21 @@ def items(o, sort=False, str_as_vector=False):
     return {None: o}.items()
 
 
+def asFunction(wannabe, stringAsSingular=True) -> callable:
+
+    if callable(wannabe):
+        return lambda *args, **kwargs: wannabe(*args, **kwargs)
+    elif (not stringAsSingular and isinstance(wannabe, str)) or (hasattr(wannabe, "__len__") or hasattr(wannabe, "__getitem__")):
+
+        def indexedAsFunction(*args, wbCopy=wannabe):
+            val = wbCopy[args[0]]
+            return asFunction(val, stringAsSingular=stringAsSingular)(*args[1:]) if len(args) > 1 else val
+
+        return indexedAsFunction
+
+    return lambda *args, **kwargs: wannabe
+
+
 class HashCache:
 
     def __init__(self, hasher=None, serializer=None):
