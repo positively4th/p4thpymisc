@@ -3,6 +3,7 @@ from collections import OrderedDict
 
 from src.misc import items
 from src.misc import asFunction
+from src.misc import filterByKey
 from src.misc import HashCache
 
 
@@ -124,8 +125,38 @@ class testMisc(unittest.TestCase):
                 {'a': ['1A0', '1A1'], 'b': ['1B0', '1B1']},
             ], 'args': [1, 'b', 1], 'expected': '1B1'},
 
+            {'wannabe': 'abcd', 'args': [0],
+                'stringAsSingular': True, 'expected': 'a'},
+            {'wannabe': 'abcd', 'args': [3],
+                'stringAsSingular': True, 'expected': 'd'},
+            {'wannabe': ['aBC', 'bCD'], 'args': [0],
+                'stringAsSingular': True, 'expected': 'aBC'},
+            {'wannabe': ['aBC', 'bCD'], 'args': [1],
+                'stringAsSingular': True, 'expected': 'bCD'},
+            {'wannabe': ['aBC', 'bCD'], 'args': [0, 2],
+                'stringAsSingular': True, 'expected': 'C'},
+            {'wannabe': ['aBC', 'bCD'], 'args': [1, 1],
+                'stringAsSingular': True, 'expected': 'C'},
         ]
 
         for spec in specs:
-            self.assertEqual(spec['expected'], asFunction(
-                spec['wannabe'])(*spec['args']))
+            stringAsSingular = spec['stringAsSimgular'] if 'stringAsSingular' in 'spec' else True
+            self.assertEqual(spec['expected'], asFunction(spec['wannabe'], stringAsSingular=stringAsSingular)(
+                *spec['args']), repr(spec['args']))
+
+    def testFilterByKey(self):
+
+        specs = [
+            {'args': [{'a': 1, 'b': 2, 'c': 3}, []], 'expected': {}},
+            {'args': [{'a': 1, 'b': 2, 'c': 3}, ['a']], 'expected': {'a': 1}},
+            {'args': [{'a': 1, 'b': 2, 'c': 3}, ['c']],
+                'expected': {'c': 3}},
+            {'args': [{'a': 1, 'b': 2, 'c': 3}, tuple(['a', 'c'])],
+                'expected': {'a': 1, 'c': 3}},
+            {'args': [{'a': 1, 'b': 2, 'c': 3}, set(['a', 'c'])],
+                'expected': {'a': 1, 'c': 3}},
+        ]
+
+        for spec in specs:
+            self.assertEqual(spec['expected'], filterByKey(
+                *spec['args']), repr(spec['args']))

@@ -37,6 +37,14 @@ def asFunction(wannabe, stringAsSingular=True) -> callable:
     return lambda *args, **kwargs: wannabe
 
 
+def filterByKey(d: dict, keepKeys: list | tuple | set) -> dict:
+    keys = tuple(set(d.keys()).intersection(set(keepKeys)))
+    res = {}
+    for key in keys:
+        res[key] = d[key]
+    return res
+
+
 class HashCache:
 
     def __init__(self, hasher=None, serializer=None):
