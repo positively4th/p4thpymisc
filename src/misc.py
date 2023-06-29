@@ -26,7 +26,12 @@ def asFunction(wannabe, stringAsSingular=True) -> callable:
 
     if callable(wannabe):
         return lambda *args, **kwargs: wannabe(*args, **kwargs)
-    elif (not stringAsSingular and isinstance(wannabe, str)) or (hasattr(wannabe, "__len__") or hasattr(wannabe, "__getitem__")):
+
+    isIterable = hasattr(wannabe, "__len__") or hasattr(wannabe, "__getitem__")
+    isIterable = isIterable and (
+        not isinstance(wannabe, str) or not stringAsSingular)
+
+    if isIterable:
 
         def indexedAsFunction(*args, wbCopy=wannabe):
             val = wbCopy[args[0]]

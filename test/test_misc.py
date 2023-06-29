@@ -97,8 +97,12 @@ class testMisc(unittest.TestCase):
     def testAsFunction(self):
 
         specs = [
+            {'wannabe': 'abc', 'args': [], 'expected': 'abc'},
+            {'wannabe': 'abc', 'args': [1], 'expected': 'abc'},
+
             {'wannabe': 1, 'args': [], 'expected': 1},
             {'wannabe': 1, 'args': ['a'], 'expected': 1},
+
 
             {'wannabe': ['a', 'b'], 'args': [0], 'expected': 'a'},
             {'wannabe': ['a', 'b'], 'args': [1], 'expected': 'b'},
@@ -126,21 +130,21 @@ class testMisc(unittest.TestCase):
             ], 'args': [1, 'b', 1], 'expected': '1B1'},
 
             {'wannabe': 'abcd', 'args': [0],
-                'stringAsSingular': True, 'expected': 'a'},
+                'stringAsSingular': False, 'expected': 'a'},
             {'wannabe': 'abcd', 'args': [3],
-                'stringAsSingular': True, 'expected': 'd'},
+                'stringAsSingular': False, 'expected': 'd'},
             {'wannabe': ['aBC', 'bCD'], 'args': [0],
-                'stringAsSingular': True, 'expected': 'aBC'},
+                'stringAsSingular': False, 'expected': 'aBC'},
             {'wannabe': ['aBC', 'bCD'], 'args': [1],
-                'stringAsSingular': True, 'expected': 'bCD'},
+                'stringAsSingular': False, 'expected': 'bCD'},
             {'wannabe': ['aBC', 'bCD'], 'args': [0, 2],
-                'stringAsSingular': True, 'expected': 'C'},
+                'stringAsSingular': False, 'expected': 'C'},
             {'wannabe': ['aBC', 'bCD'], 'args': [1, 1],
-                'stringAsSingular': True, 'expected': 'C'},
+                'stringAsSingular': False, 'expected': 'C'},
         ]
 
         for spec in specs:
-            stringAsSingular = spec['stringAsSimgular'] if 'stringAsSingular' in 'spec' else True
+            stringAsSingular = spec['stringAsSingular'] if 'stringAsSingular' in spec else True
             self.assertEqual(spec['expected'], asFunction(spec['wannabe'], stringAsSingular=stringAsSingular)(
                 *spec['args']), repr(spec['args']))
 
