@@ -34,6 +34,9 @@ def asFunction(wannabe, stringAsSingular=True) -> callable:
     if isIterable:
 
         def indexedAsFunction(*args, wbCopy=wannabe):
+            if len(args) < 1:
+                return wannabe
+
             val = wbCopy[args[0]]
             return asFunction(val, stringAsSingular=stringAsSingular)(*args[1:]) if len(args) > 1 else val
 
