@@ -30,7 +30,7 @@ class testSubProcessHelper(unittest.TestCase):
     def testSingleLine(self):
         sink, pairs = self.createOutErrSink()
 
-        self.assertEquals(0, SubProcessHelper.run(
+        self.assertEqual(0, SubProcessHelper.run(
             ["echo", "test run"], outErrSink=sink))
 
         self.assertEqual([
@@ -42,7 +42,7 @@ class testSubProcessHelper(unittest.TestCase):
     def testManyLines(self):
         sink, pairs = self.createOutErrSink()
 
-        self.assertEquals(0, SubProcessHelper.run(
+        self.assertEqual(0, SubProcessHelper.run(
             ['time', '-p', 'echo', 'test run'], outErrSink=sink, shell=True))
 
         self.assertEqual([

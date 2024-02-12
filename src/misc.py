@@ -1,5 +1,7 @@
 from xxhash import xxh32
 import jsonpickle
+import ramda as R
+from json import dumps, loads
 
 
 def items(o, sort=False, str_as_vector=False):
@@ -82,3 +84,47 @@ class HashCache:
         else:
             _res = res
         return _res
+
+
+def createCaster(item: any) -> callable:
+
+    if item is None:
+        return lambda x: None
+
+    cls = None
+    try:
+        cls = item.__class__
+    except Exception as e:
+        print(e)
+        pass
+    if not callable(cls):
+        def cls(x): return x
+
+    return cls
+
+
+def clone(item: any) -> any:
+
+    def isMutable(item):
+        return item is not None and not callable(item) and not isinstance(item, (str, float, int))
+
+    cls = createCaster(item)
+
+    if not isinstance(item, str):
+        try:
+            res = R.map(
+                lambda item: clone(item) if isMutable(item) else item
+            )(item)
+            try:
+                return cls(res)
+            except Exception as e:
+                print(e)
+            return res
+        except TypeError as e:
+            pass
+        except Exception as e:
+            print(e)
+            pass
+
+    return cls(loads(dumps(item))) \
+        if isMutable(item) else item

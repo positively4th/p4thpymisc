@@ -1,10 +1,13 @@
 import unittest
 from collections import OrderedDict
+from jsonpickle import encode
 
 from src.misc import items
 from src.misc import asFunction
 from src.misc import filterByKey
 from src.misc import HashCache
+from src.misc import createCaster
+from src.misc import clone
 
 
 class testMisc(unittest.TestCase):
@@ -71,27 +74,27 @@ class testMisc(unittest.TestCase):
         cache = HashCache()
 
         for input in inputs:
-            self.assertEquals(type(input), cache.get(
+            self.assertEqual(type(input), cache.get(
                 cache.key(input), type(input)))
 
         for input in inputs:
-            self.assertEquals(type(input), cache.set(
+            self.assertEqual(type(input), cache.set(
                 cache.key(input), input, type(input)))
 
         for input in inputs:
-            self.assertEquals(input, cache.set(
+            self.assertEqual(input, cache.set(
                 cache.key(input), input, type(input)))
 
         for input in inputs:
-            self.assertEquals(input, cache.delete(
+            self.assertEqual(input, cache.delete(
                 cache.key(input), type(input)))
 
         for input in inputs:
-            self.assertEquals(type(input), cache.delete(
+            self.assertEqual(type(input), cache.delete(
                 cache.key(input), type(input)))
 
         for input in inputs:
-            self.assertEquals(type(input), cache.get(
+            self.assertEqual(type(input), cache.get(
                 cache.key(input), type(input)))
 
     def testAsFunction(self):
@@ -164,3 +167,90 @@ class testMisc(unittest.TestCase):
         for spec in specs:
             self.assertEqual(spec['expected'], filterByKey(
                 *spec['args']), repr(spec['args']))
+
+    def testClone(self):
+
+        aNone = None
+        aInt = 1
+        aStr = 'abc'
+        aFloat = 3.333
+
+        def aCallable(x): return x
+
+        aList = [aNone, aInt, aFloat, aStr, aCallable]
+        aDict = {
+            'a': aNone,
+            'b': aInt,
+            'c': aFloat,
+            'd': aStr,
+            'e': aCallable
+        }
+        aSet = set(aList)
+        aTuple = tuple(aList)
+
+        specs = [
+
+            {'args': [aNone], 'kwargs': {}, 'exp': None, 'isImmutable': True},
+            {'args': [aInt], 'kwargs': {}, 'exp': aInt, 'isImmutable': True},
+            {'args': [aFloat], 'kwargs': {},
+                'exp': aFloat, 'isImmutable': True},
+            {'args': [aStr], 'kwargs': {}, 'exp': aStr, 'isImmutable': True},
+            {'args': [aCallable], 'kwargs': {},
+                'exp': aCallable, 'isImmutable': True},
+
+            {'args': [aList], 'kwargs': {}, 'exp': aList},
+            {'args': [aDict], 'kwargs': {}, 'exp': aDict},
+            {'args': [aSet], 'kwargs': {}, 'exp': aSet},
+            {'args': [aTuple], 'kwargs': {}, 'exp': aTuple},
+
+            {
+                'args': [[aList, aDict, aSet, aCallable]],
+                'kwargs': {},
+                'exp': [aList, aDict, aSet, aCallable]
+            },
+            {
+                'args': [tuple([aList, aDict, aSet, aCallable])],
+                'kwargs': {},
+                'exp': tuple([aList, aDict, aSet, aCallable])
+            },
+            {
+                'args': [{'a': aList, 'b': aDict, 'c': aSet, 'd': aCallable}],
+                'kwargs': {},
+                'exp': {'a': aList, 'b': aDict, 'c': aSet, 'd': aCallable}
+            },
+        ]
+
+        for spec in specs:
+            act = clone(*spec['args'], **spec['kwargs'])
+            exp = spec['exp']
+            self.assertEqual(exp, act, encode(spec))
+            if 'isImmutable' in spec and spec['isImmutable']:
+                self.assertIs(exp, act, encode(spec))
+            else:
+                self.assertIsNot(exp, act, encode(spec))
+
+    def test_createCaster(self):
+
+        specs = [
+
+            {'typee': None, 'castee': None,
+                'expValue': None, 'expType': type(None)},
+            {'typee': 3, 'castee': "4",
+                'expValue': 4, 'expType': int},
+            {'typee': 3.4, 'castee': "5.4",
+                'expValue': 5.4, 'expType': float},
+            {'typee': "5", 'castee': 6,
+                'expValue': "6", 'expType': str},
+            {'typee': (5,), 'castee': [6,],
+                'expValue': (6,), 'expType': tuple},
+            {'typee': set([5, 6]), 'castee': tuple((6, 7)),
+                'expValue': set([6, 7]), 'expType': set},
+            {'typee': ['ab', lambda x: x], 'castee': (6, 7.0),
+                'expValue': [6, 7.0], 'expType': list},
+        ]
+
+        for spec in specs:
+            caster = createCaster(spec['typee'])
+            act = caster(spec['castee'])
+            self.assertEqual(spec['expValue'], act, encode(spec))
+            self.assertEqual(spec['expType'], type(act), encode(spec))
